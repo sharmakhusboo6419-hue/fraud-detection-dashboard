@@ -1,23 +1,57 @@
-import logo from './logo.svg';
 import './App.css';
+import React, { useState } from 'react';
+import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, Check, ChevronDown, CircleDollarSign, Clock3, Database, Eye, FileSearch, LayoutDashboard, Menu, RefreshCw, Search, Settings, Shield, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+const volumeData = [
+  { time: '00:00', screened: 420, flagged: 38 }, { time: '02:00', screened: 510, flagged: 41 }, { time: '04:00', screened: 390, flagged: 26 }, { time: '06:00', screened: 670, flagged: 49 },
+  { time: '08:00', screened: 940, flagged: 62 }, { time: '10:00', screened: 1120, flagged: 77 }, { time: '12:00', screened: 1080, flagged: 69 }, { time: '14:00', screened: 1260, flagged: 96 },
+  { time: '16:00', screened: 1190, flagged: 82 }, { time: '18:00', screened: 1380, flagged: 104 }, { time: '20:00', screened: 1170, flagged: 76 }, { time: '22:00', screened: 890, flagged: 58 }
+];
+const modelData = [{ name: 'Account takeover', value: 91, color: '#c8f169' }, { name: 'Card testing', value: 84, color: '#8bb8d6' }, { name: 'Synthetic identity', value: 78, color: '#e7b26a' }, { name: 'Payment abuse', value: 73, color: '#f27c6b' }];
+const initialTransactions = [
+  { id: 'TX-849201', merchant: 'Northstar Market', country: 'US', amount: '$1,284.00', type: 'Card not present', score: 96, status: 'Blocked', time: '2 min ago' }, { id: 'TX-849187', merchant: 'Asteria Travel', country: 'GB', amount: '$842.50', type: 'Account takeover', score: 87, status: 'Review', time: '8 min ago' },
+  { id: 'TX-849163', merchant: 'Vela Digital', country: 'DE', amount: '$2,104.20', type: 'Synthetic identity', score: 79, status: 'Review', time: '14 min ago' }, { id: 'TX-849142', merchant: 'Good Ground Co.', country: 'CA', amount: '$316.90', type: 'Card testing', score: 68, status: 'Cleared', time: '21 min ago' }, { id: 'TX-849106', merchant: 'Morrow Home', country: 'AU', amount: '$1,090.00', type: 'Payment abuse', score: 91, status: 'Blocked', time: '27 min ago' }
+];
+const navItems = [{ label: 'Overview', icon: LayoutDashboard }, { label: 'Transactions', icon: Activity, count: '128' }, { label: 'Review queue', icon: FileSearch, count: '12' }, { label: 'Models', icon: SlidersHorizontal }, { label: 'Reports', icon: BarChart3 }];
+
+function Metric({ label, value, detail, trend, icon: Icon, tone }) {
+  return <article className="metric-card"><div className="metric-topline"><span className="eyebrow">{label}</span><span className={`metric-icon ${tone}`}><Icon size={16} strokeWidth={1.8} /></span></div><div className="metric-value">{value}</div><div className="metric-foot"><span className={trend.startsWith('+') ? 'trend positive' : 'trend negative'}>{trend.startsWith('+') ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{trend}</span><span>{detail}</span></div></article>;
+}
 
 function App() {
+  const [activeNav, setActiveNav] = useState('Overview');
+  const [range, setRange] = useState('Today');
+  const [lastSync, setLastSync] = useState('a few seconds ago');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [queueCount, setQueueCount] = useState(12);
+  const [toast, setToast] = useState('');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const refreshDashboard = () => { setIsRefreshing(true); window.setTimeout(() => { setLastSync('just now'); setIsRefreshing(false); setToast('Dashboard data is up to date'); window.setTimeout(() => setToast(''), 2500); }, 700); };
+  const reviewTransaction = (id) => { setTransactions((items) => items.map((item) => item.id === id ? { ...item, status: 'In review' } : item)); setQueueCount((count) => Math.max(0, count - 1)); setToast(`${id} moved to active review`); window.setTimeout(() => setToast(''), 2500); };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app-shell">
+      <aside className={`sidebar ${mobileNavOpen ? 'is-open' : ''}`}>
+        <div className="brand-lockup"><div className="brand-mark"><Shield size={19} /></div><div><strong>sentinel</strong><span>risk operations</span></div><button className="sidebar-close" onClick={() => setMobileNavOpen(false)} aria-label="Close navigation"><X size={18} /></button></div>
+        <div className="workspace-switcher"><span className="workspace-dot" /> Meridian / Production <ChevronDown size={14} /></div>
+        <div className="nav-section-label">Workspace</div>
+        <nav className="primary-nav">{navItems.map(({ label, icon: Icon, count }) => <button key={label} className={`nav-item ${activeNav === label ? 'active' : ''}`} onClick={() => { setActiveNav(label); setMobileNavOpen(false); }}><Icon size={17} strokeWidth={1.8} /><span>{label}</span>{count && <b>{label === 'Review queue' ? queueCount : count}</b>}</button>)}</nav>
+        <div className="nav-section-label nav-section-lower">Manage</div><nav className="primary-nav"><button className="nav-item"><Database size={17} /><span>Data sources</span></button><button className="nav-item"><Settings size={17} /><span>Settings</span></button></nav>
+        <div className="sidebar-footer"><div className="plan-status"><span className="live-dot" /><div><strong>System healthy</strong><small>All services operational</small></div></div><div className="user-card"><div className="avatar">AR</div><div><strong>Alex Rivera</strong><small>Risk analyst</small></div><ChevronDown size={14} /></div></div>
+      </aside>
+      <main className="main-content">
+        <header className="topbar"><button className="mobile-menu" onClick={() => setMobileNavOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><div className="topbar-search"><Search size={16} /><span>Search anything</span><kbd>⌘ K</kbd></div><div className="topbar-actions"><button className="icon-button" aria-label="Notifications"><Bell size={18} /><span className="notification-dot" /></button><div className="topbar-date">September 30, 2026</div></div></header>
+        <div className="content-wrap">
+          <div className="page-heading"><div><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{activeNav}</strong></div><h1>Risk command center</h1><p>Monitor transaction health and make faster decisions across your payment network.</p></div><div className="heading-actions"><div className="live-status"><span className="live-dot" /> Live monitoring</div><button className="refresh-button" onClick={refreshDashboard} disabled={isRefreshing}><RefreshCw size={15} className={isRefreshing ? 'spin' : ''} /> Refresh</button></div></div>
+          <section className="metric-grid" aria-label="Key performance indicators"><Metric label="Transactions screened" value="284,691" detail="vs. previous period" trend="+12.8%" icon={Activity} tone="sky" /><Metric label="Prevented loss" value="$1.84M" detail="estimated this month" trend="+8.4%" icon={CircleDollarSign} tone="lime" /><Metric label="Model precision" value="94.7%" detail="across all models" trend="+2.1%" icon={Sparkles} tone="gold" /><Metric label="p95 decision latency" value="118 ms" detail="target < 200 ms" trend="-14.2%" icon={Clock3} tone="coral" /></section>
+          <section className="analytics-grid"><article className="panel volume-panel"><div className="panel-heading"><div><span className="eyebrow">Network activity</span><h2>Screening volume</h2></div><div className="chart-controls"><select value={range} onChange={(event) => setRange(event.target.value)} aria-label="Date range"><option>Today</option><option>Last 7 days</option><option>Last 30 days</option></select><button className="more-button" aria-label="More chart options">•••</button></div></div><div className="chart-legend"><span><i className="legend-dot screened" /> Screened</span><span><i className="legend-dot flagged" /> Flagged</span><strong><span className="live-dot" /> Updating live</strong></div><div className="volume-chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={volumeData} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}><defs><linearGradient id="screenedFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#8bb8d6" stopOpacity={0.28} /><stop offset="100%" stopColor="#8bb8d6" stopOpacity={0} /></linearGradient><linearGradient id="flaggedFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f27c6b" stopOpacity={0.22} /><stop offset="100%" stopColor="#f27c6b" stopOpacity={0} /></linearGradient></defs><CartesianGrid vertical={false} stroke="#e4e2da" strokeDasharray="3 4" /><XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#93999c', fontSize: 11 }} /><YAxis axisLine={false} tickLine={false} tick={{ fill: '#93999c', fontSize: 11 }} /><Tooltip contentStyle={{ border: '1px solid #d9d8d1', borderRadius: 3, background: '#fbfaf7', fontSize: 12 }} /><Area type="monotone" dataKey="screened" stroke="#6d9eba" fill="url(#screenedFill)" strokeWidth={2} /><Area type="monotone" dataKey="flagged" stroke="#ef806e" fill="url(#flaggedFill)" strokeWidth={2} /></AreaChart></ResponsiveContainer></div><div className="chart-foot"><span><strong>11,020</strong> screened in the last 24 hours</span><span><strong className="coral-text">698</strong> flagged for review</span></div></article>
+            <article className="panel model-panel"><div className="panel-heading"><div><span className="eyebrow">Model performance</span><h2>Detection coverage</h2></div><button className="text-button">View models <ArrowUpRight size={14} /></button></div><div className="model-score"><span>Overall model score</span><strong>87.4</strong><small>/ 100</small></div><div className="model-chart"><ResponsiveContainer width="100%" height="100%"><BarChart layout="vertical" data={modelData} margin={{ top: 2, right: 2, left: 0, bottom: 0 }}><XAxis type="number" domain={[0, 100]} hide /><YAxis type="category" dataKey="name" width={105} axisLine={false} tickLine={false} tick={{ fill: '#4f5963', fontSize: 11 }} /><Bar dataKey="value" barSize={10} radius={[0, 2, 2, 0]}>{modelData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}</Bar></BarChart></ResponsiveContainer></div><div className="model-note"><span className="note-icon"><Check size={14} /></span><span>Precision is up <strong>2.1%</strong> since the last model refresh.</span></div></article></section>
+          <section className="panel table-panel"><div className="panel-heading table-heading"><div><span className="eyebrow">Needs attention</span><h2>Recent flagged transactions</h2></div><div className="table-actions"><button className="filter-button"><SlidersHorizontal size={14} /> Filter</button><button className="text-button">View all <ArrowUpRight size={14} /></button></div></div><div className="transaction-table-wrap"><table><thead><tr><th>Transaction</th><th>Merchant</th><th>Signal</th><th>Risk score</th><th>Status</th><th>Detected</th><th aria-label="Actions" /></tr></thead><tbody>{transactions.map((transaction) => <tr key={transaction.id}><td><span className="transaction-id">{transaction.id}</span><span className="transaction-amount">{transaction.amount}</span></td><td><span className="merchant-name">{transaction.merchant}</span><span className="country-code">{transaction.country}</span></td><td>{transaction.type}</td><td><span className={`risk-score ${transaction.score > 90 ? 'high' : transaction.score > 80 ? 'medium' : 'low'}`}>{transaction.score}</span></td><td><span className={`status-chip ${transaction.status.toLowerCase().replace(' ', '-')}`}>{transaction.status}</span></td><td className="detected-time">{transaction.time}</td><td>{transaction.status === 'Review' ? <button className="review-button" onClick={() => reviewTransaction(transaction.id)}><Eye size={14} /> Review</button> : <button className="row-menu" aria-label={`Actions for ${transaction.id}`}>•••</button>}</td></tr>)}</tbody></table></div></section>
+          <footer className="content-footer"><span>Sentinel risk operations <b>·</b> v2.4.1 <span className="sync-copy">· Last sync {lastSync}</span></span><span><span className="live-dot" /> All systems operational</span></footer>
+        </div>
+      </main>
+      {toast && <div className="toast"><Check size={16} /> {toast}</div>}
     </div>
   );
 }
