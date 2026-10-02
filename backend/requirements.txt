@@ -1,0 +1,16 @@
+# ShieldAI backend requirements
+#
+# ML versions are PINNED EXACTLY, not ranged. fraud_model.joblib is a pickle,
+# and pickle compatibility is version-locked: loading it under a different
+# scikit-learn version raises an error, or worse, silently mispredicts. These
+# are the exact versions the shipped artifact was trained and saved with.
+# Retrain the model (python backend/app/ml/train_model.py) if you change them.
+fastapi==0.142.2
+uvicorn[standard]==0.34.0
+pydantic==2.13.5
+websockets==14.1
+numpy==2.5.3
+pandas==3.0.6
+scipy==1.18.1
+scikit-learn==1.9.1
+joblib==1.6.0

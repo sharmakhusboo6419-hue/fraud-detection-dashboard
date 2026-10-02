@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: shieldai-api
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    # The model artifact is ~660KB and the ML stack (numpy/scipy/pandas/sklearn)
+    # is large, so allow generous build time on the free tier.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: SHIELD_ALLOWED_ORIGINS
+        sync: false
