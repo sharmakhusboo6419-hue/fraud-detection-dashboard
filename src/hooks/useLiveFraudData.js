@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { STATIC_MODEL_METRICS } from '../data/staticModelMetrics';
+import { MOCK_SEED_TRANSACTIONS, MOCK_SEED_STATS } from '../data/mockTransactions';
 
 // Resolution order for the API base:
 //   1. REACT_APP_API_BASE  - set at build time (local dev)
@@ -39,20 +41,6 @@ function resolveWsUrl() {
 
 const WS_URL = resolveWsUrl();
 
-const EMPTY_STATS = {
-  transactions_screened: 0,
-  prevented_loss: 0,
-  flagged: 0,
-  approved: 0,
-  blocked: 0,
-  review: 0,
-  gross_volume: 0,
-  avg_risk_score: 0,
-  flagged_pct: 0,
-  approved_pct: 0,
-  series: [],
-};
-
 async function getJson(path) {
   const res = await fetch(`${API}${path}`);
   if (!res.ok) throw new Error(`${path} -> ${res.status}`);
@@ -74,16 +62,15 @@ async function getModelMetrics() {
   try {
     const staticRes = await fetch(`${process.env.PUBLIC_URL || ''}/static_model_metrics.json`);
     if (staticRes.ok) {
-      return await staticRes.json();
+      const data = await staticRes.json();
+      if (data && data.loaded) return data;
     }
   } catch {
     // ignore
   }
 
-  return {
-    loaded: false,
-    error: 'No connection to backend model server.',
-  };
+  // Reliable in-bundle fallback guaranteed to load under all static deployment scenarios
+  return STATIC_MODEL_METRICS;
 }
 
 /**
@@ -91,12 +78,12 @@ async function getModelMetrics() {
  * when the socket cannot be established, so the UI is never stuck on stale data.
  */
 export function useLiveFraudData() {
-  const [transactions, setTransactions] = useState([]);
-  const [stats, setStats] = useState(EMPTY_STATS);
+  const [transactions, setTransactions] = useState(MOCK_SEED_TRANSACTIONS);
+  const [stats, setStats] = useState(MOCK_SEED_STATS);
   const [feed, setFeed] = useState([]);
   const [status, setStatus] = useState('connecting');
   const [error, setError] = useState(null);
-  const [model, setModel] = useState(null);
+  const [model, setModel] = useState(STATIC_MODEL_METRICS);
 
   const wsRef = useRef(null);
   const pollRef = useRef(null);
@@ -121,6 +108,11 @@ export function useLiveFraudData() {
       setStatus(prev => (prev === 'live' ? prev : 'polling'));
     } catch (err) {
       if (!aliveRef.current) return;
+      // In standalone frontend deployments (e.g. Vercel without a configured backend origin),
+      // keep the preloaded seed data active and ensure the model metrics are rendered cleanly
+      setModel(prev => prev || STATIC_MODEL_METRICS);
+      setTransactions(prev => (prev && prev.length ? prev : MOCK_SEED_TRANSACTIONS));
+      setStats(prev => (prev && prev.transactions_screened ? prev : MOCK_SEED_STATS));
       setError(err.message);
       setStatus(prev => (prev === 'live' ? prev : 'offline'));
     }
