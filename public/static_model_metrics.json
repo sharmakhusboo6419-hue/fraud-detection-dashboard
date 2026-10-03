@@ -1,0 +1,65 @@
+{
+  "loaded": true,
+  "model_type": "GradientBoostingClassifier + isotonic calibration",
+  "trained_at": "2026-10-02T18:23:46.756668+00:00",
+  "features": [
+    "amount",
+    "is_foreign",
+    "failed_pin_attempts",
+    "distance_from_home_km",
+    "time_since_last_tx_sec"
+  ],
+  "training_threshold": 0.0048,
+  "review_cut": 0.02481,
+  "block_cut": 0.09214,
+  "reference_stats": {
+    "n_reference": 200000,
+    "legit_mean_prob": 0.00512,
+    "legit_p99_prob": 0.03812,
+    "review_cut": 0.02481,
+    "block_cut": 0.09214,
+    "review_false_positive_rate": 0.02,
+    "block_false_positive_rate": 0.0025
+  },
+  "metrics": {
+    "trained_at": "2026-10-02T18:23:46.756668+00:00",
+    "model_type": "GradientBoostingClassifier + isotonic calibration",
+    "n_samples": 60000,
+    "train_size": 48000,
+    "test_size": 12000,
+    "fraud_rate": 0.00627,
+    "majority_baseline_accuracy": 0.99373,
+    "scale_pos_weight": 158.47,
+    "review_budget": 0.02,
+    "threshold": 0.0048,
+    "test": {
+      "pr_auc": 0.09,
+      "roc_auc": 0.7844,
+      "precision": 0.0183,
+      "recall": 0.6267,
+      "f1": 0.0356,
+      "accuracy": 0.788,
+      "fraud_catch_rate": 0.6267,
+      "false_positive_rate": 0.21099,
+      "confusion_matrix": {
+        "tp": 47,
+        "fp": 2516,
+        "fn": 28,
+        "tn": 9409
+      }
+    },
+    "cross_validation": {
+      "folds": 5,
+      "pr_auc": 0.1045,
+      "roc_auc": 0.7745
+    },
+    "features": [
+      "amount",
+      "is_foreign",
+      "failed_pin_attempts",
+      "distance_from_home_km",
+      "time_since_last_tx_sec"
+    ]
+  },
+  "load_error": null
+}

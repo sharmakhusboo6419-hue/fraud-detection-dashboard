@@ -59,6 +59,33 @@ async function getJson(path) {
   return res.json();
 }
 
+async function getModelMetrics() {
+  try {
+    const res = await fetch(`${API}/api/v1/model/metrics`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.loaded) return data;
+    }
+  } catch {
+    // Backend unreachable or returned error, try bundled static report fallback
+  }
+
+  // Fallback to static trained report bundled with app so frontend is never broken
+  try {
+    const staticRes = await fetch(`${process.env.PUBLIC_URL || ''}/static_model_metrics.json`);
+    if (staticRes.ok) {
+      return await staticRes.json();
+    }
+  } catch {
+    // ignore
+  }
+
+  return {
+    loaded: false,
+    error: 'No connection to backend model server.',
+  };
+}
+
 /**
  * Subscribes to the backend live feed (WebSocket) and falls back to polling
  * when the socket cannot be established, so the UI is never stuck on stale data.
@@ -82,7 +109,7 @@ export function useLiveFraudData() {
       const [rows, nextStats, modelInfo] = await Promise.all([
         getJson('/api/v1/transactions/high-risk?limit=50'),
         getJson('/api/v1/dashboard/stats'),
-        getJson('/api/v1/model/metrics'),
+        getModelMetrics(),
       ]);
       if (!aliveRef.current) return;
       setTransactions(rows);
