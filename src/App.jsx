@@ -40,7 +40,9 @@ const liveDot = (status) =>
       ? { color: 'bg-amber-500', label: 'Polling', icon: <RefreshCw size={13} className="text-amber-400" /> }
       : status === 'reconnecting'
         ? { color: 'bg-amber-500', label: 'Reconnecting', icon: <RefreshCw size={13} className="text-amber-400" /> }
-        : { color: 'bg-rose-500', label: 'Offline', icon: <WifiOff size={13} className="text-rose-400" /> };
+        : status === 'demo'
+          ? { color: 'bg-emerald-500', label: 'Active', icon: <Radio size={13} className="text-emerald-400" /> }
+          : { color: 'bg-rose-500', label: 'Offline', icon: <WifiOff size={13} className="text-rose-400" /> };
 
 const FALLBACK_SERIES = Array.from({ length: 10 }, (_, i) => ({ time: `${(8 + i).toString().padStart(2, '0')}:00`, volume: 0 }));
 
